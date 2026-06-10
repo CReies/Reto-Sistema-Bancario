@@ -36,6 +36,12 @@ public class CreateTransactionService {
             return Mono.error(new BusinessException("Account inactive: " + request.accountNumber()));
         }
 
+        BusinessException amountValidationError = validateTransactionAmount(request);
+
+        if (amountValidationError != null) {
+            return Mono.error(amountValidationError);
+        }
+
         BigDecimal newBalance = account.getCurrentBalance().add(request.amount());
         if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
             return Mono.error(new BusinessException("Insufficient balance"));
@@ -52,5 +58,19 @@ public class CreateTransactionService {
         return accountRepository.save(account)
                 .then(transactionRepository.save(transaction))
                 .map(saved -> mapper.toResponse(saved, account.getAccountNumber()));
+    }
+
+    private BusinessException validateTransactionAmount(TransactionRequest request) {
+        if ("Withdrawal".equals(request.transactionType())
+                && request.amount().compareTo(BigDecimal.ZERO) >= 0) {
+            return new BusinessException("Withdrawal amount must be negative");
+        }
+
+        if ("Deposit".equals(request.transactionType())
+                && request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            return new BusinessException("Deposit amount must be positive");
+        }
+
+        return null;
     }
 }
