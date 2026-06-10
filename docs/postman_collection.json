@@ -1,0 +1,1050 @@
+{
+  "info": {
+    "_postman_id": "7b2d8a8f-3e94-4f3f-91d5-reto-microservicios",
+    "name": "Technical Challenge Microservices - CRUD Flow",
+    "description": "Full Postman flow for client CRUD, account CRUD, deposits, withdrawals, transaction GETs, and account statements. Run '00 - Initialize variables' first to generate unique data for each run.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "clientBaseUrl",
+      "value": "http://localhost:8081/api",
+      "type": "string"
+    },
+    {
+      "key": "accountBaseUrl",
+      "value": "http://localhost:8082/api",
+      "type": "string"
+    },
+    {
+      "key": "runSuffix",
+      "value": "manual",
+      "type": "string"
+    },
+    {
+      "key": "clientId",
+      "value": "CLI-manual",
+      "type": "string"
+    },
+    {
+      "key": "clientDbId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "accountNumber",
+      "value": "478manual",
+      "type": "string"
+    },
+    {
+      "key": "accountId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "crudAccountNumber",
+      "value": "479manual",
+      "type": "string"
+    },
+    {
+      "key": "crudAccountId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "withdrawalTransactionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "depositTransactionId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Initialize variables",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now().toString();",
+              "pm.collectionVariables.set('runSuffix', suffix);",
+              "pm.collectionVariables.set('clientId', `CLI-${suffix}`);",
+              "pm.collectionVariables.set('clientDbId', '');",
+              "pm.collectionVariables.set('accountNumber', `478${suffix.slice(-6)}`);",
+              "pm.collectionVariables.set('accountId', '');",
+              "pm.collectionVariables.set('crudAccountNumber', `479${suffix.slice(-6)}`);",
+              "pm.collectionVariables.set('crudAccountId', '');",
+              "pm.collectionVariables.set('withdrawalTransactionId', '');",
+              "pm.collectionVariables.set('depositTransactionId', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Variables initialized', function () {",
+              "  pm.expect(pm.collectionVariables.get('clientId')).to.include('CLI-');",
+              "  pm.expect(pm.collectionVariables.get('accountNumber')).to.include('478');",
+              "  pm.expect(pm.collectionVariables.get('crudAccountNumber')).to.include('479');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{clientBaseUrl}}/clients",
+          "host": [
+            "{{clientBaseUrl}}"
+          ],
+          "path": [
+            "clients"
+          ]
+        },
+        "description": "Generates unique values for clientId, accountNumber, and crudAccountNumber before running the full flow."
+      }
+    },
+    {
+      "name": "Client CRUD",
+      "item": [
+        {
+          "name": "01 - List clients",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clientBaseUrl}}/clients",
+              "host": [
+                "{{clientBaseUrl}}"
+              ],
+              "path": [
+                "clients"
+              ]
+            }
+          }
+        },
+        {
+          "name": "02 - Create client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Client created with expected English attributes', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('clientDbId', json.id);",
+                  "  pm.expect(json.id).to.exist;",
+                  "  pm.expect(json.clientId).to.eql(pm.collectionVariables.get('clientId'));",
+                  "  pm.expect(json.name).to.eql('Jose Lema Postman');",
+                  "  pm.expect(json.gender).to.eql('Male');",
+                  "  pm.expect(json.age).to.eql(35);",
+                  "  pm.expect(json.identification).to.eql(`ID-${pm.collectionVariables.get('runSuffix')}`);",
+                  "  pm.expect(json.address).to.eql('Otavalo sn y principal');",
+                  "  pm.expect(json.phone).to.eql('098254785');",
+                  "  pm.expect(json.active).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"name\": \"Jose Lema Postman\",\n  \"gender\": \"Male\",\n  \"age\": 35,\n  \"identification\": \"ID-{{runSuffix}}\",\n  \"address\": \"Otavalo sn y principal\",\n  \"phone\": \"098254785\",\n  \"password\": \"1234\",\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{clientBaseUrl}}/clients",
+              "host": [
+                "{{clientBaseUrl}}"
+              ],
+              "path": [
+                "clients"
+              ]
+            }
+          }
+        },
+        {
+          "name": "03 - Get client by id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns the created client', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(String(json.id)).to.eql(pm.collectionVariables.get('clientDbId'));",
+                  "  pm.expect(json.clientId).to.eql(pm.collectionVariables.get('clientId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clientBaseUrl}}/clients/{{clientDbId}}",
+              "host": [
+                "{{clientBaseUrl}}"
+              ],
+              "path": [
+                "clients",
+                "{{clientDbId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "04 - Update client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Client updated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(String(json.id)).to.eql(pm.collectionVariables.get('clientDbId'));",
+                  "  pm.expect(json.clientId).to.eql(pm.collectionVariables.get('clientId'));",
+                  "  pm.expect(json.name).to.eql('Jose Lema Updated');",
+                  "  pm.expect(json.phone).to.eql('099999999');",
+                  "  pm.expect(json.active).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"name\": \"Jose Lema Updated\",\n  \"gender\": \"Male\",\n  \"age\": 36,\n  \"identification\": \"ID-{{runSuffix}}\",\n  \"address\": \"Quito y Amazonas\",\n  \"phone\": \"099999999\",\n  \"password\": \"4321\",\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{clientBaseUrl}}/clients/{{clientDbId}}",
+              "host": [
+                "{{clientBaseUrl}}"
+              ],
+              "path": [
+                "clients",
+                "{{clientDbId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "05 - Get updated client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Updated values are persisted', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.name).to.eql('Jose Lema Updated');",
+                  "  pm.expect(json.age).to.eql(36);",
+                  "  pm.expect(json.address).to.eql('Quito y Amazonas');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clientBaseUrl}}/clients/{{clientDbId}}",
+              "host": [
+                "{{clientBaseUrl}}"
+              ],
+              "path": [
+                "clients",
+                "{{clientDbId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Account CRUD",
+      "description": "Uses a temporary account without transactions so the delete step can run without foreign-key conflicts.",
+      "item": [
+        {
+          "name": "06 - Create account for CRUD",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// The client projection is replicated to account-service through RabbitMQ.",
+                  "// If this request fails because the client does not exist, wait 1-2 seconds and retry this request."
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Account created', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('crudAccountId', json.id);",
+                  "  pm.expect(json.id).to.exist;",
+                  "  pm.expect(json.accountNumber).to.eql(pm.collectionVariables.get('crudAccountNumber'));",
+                  "  pm.expect(json.accountType).to.eql('Savings');",
+                  "  pm.expect(Number(json.initialBalance)).to.eql(500);",
+                  "  pm.expect(Number(json.currentBalance)).to.eql(500);",
+                  "  pm.expect(json.clientId).to.eql(pm.collectionVariables.get('clientId'));",
+                  "  pm.expect(json.active).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{crudAccountNumber}}\",\n  \"accountType\": \"Savings\",\n  \"initialBalance\": 500,\n  \"active\": true,\n  \"clientId\": \"{{clientId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{accountBaseUrl}}/accounts",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "accounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "07 - List accounts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Includes the CRUD account', function () {",
+                  "  const accounts = pm.response.json();",
+                  "  pm.expect(accounts).to.be.an('array');",
+                  "  pm.expect(accounts.some(account => account.accountNumber === pm.collectionVariables.get('crudAccountNumber'))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountBaseUrl}}/accounts",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "accounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "08 - Get account by id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns the CRUD account', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(String(json.id)).to.eql(pm.collectionVariables.get('crudAccountId'));",
+                  "  pm.expect(json.accountNumber).to.eql(pm.collectionVariables.get('crudAccountNumber'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountBaseUrl}}/accounts/{{crudAccountId}}",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "accounts",
+                "{{crudAccountId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "09 - Update account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Account updated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(String(json.id)).to.eql(pm.collectionVariables.get('crudAccountId'));",
+                  "  pm.expect(json.accountNumber).to.eql(pm.collectionVariables.get('crudAccountNumber'));",
+                  "  pm.expect(json.accountType).to.eql('Checking');",
+                  "  pm.expect(json.active).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{crudAccountNumber}}\",\n  \"accountType\": \"Checking\",\n  \"initialBalance\": 500,\n  \"active\": true,\n  \"clientId\": \"{{clientId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{accountBaseUrl}}/accounts/{{crudAccountId}}",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "accounts",
+                "{{crudAccountId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "10 - Get updated account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Updated account values are persisted', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.accountType).to.eql('Checking');",
+                  "  pm.expect(json.accountNumber).to.eql(pm.collectionVariables.get('crudAccountNumber'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountBaseUrl}}/accounts/{{crudAccountId}}",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "accounts",
+                "{{crudAccountId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "11 - Delete account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{accountBaseUrl}}/accounts/{{crudAccountId}}",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "accounts",
+                "{{crudAccountId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "12 - Get deleted account returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountBaseUrl}}/accounts/{{crudAccountId}}",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "accounts",
+                "{{crudAccountId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Movements - Deposit and Withdrawal",
+      "item": [
+        {
+          "name": "13 - Create account for movements",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// This account is intentionally kept after the run because it owns transactions.",
+                  "// If the client projection is not available yet in account-service, wait 1-2 seconds and retry this request."
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Movement account created', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('accountId', json.id);",
+                  "  pm.expect(json.accountNumber).to.eql(pm.collectionVariables.get('accountNumber'));",
+                  "  pm.expect(Number(json.currentBalance)).to.eql(2000);",
+                  "  pm.expect(json.clientId).to.eql(pm.collectionVariables.get('clientId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"accountType\": \"Savings\",\n  \"initialBalance\": 2000,\n  \"active\": true,\n  \"clientId\": \"{{clientId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{accountBaseUrl}}/accounts",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "accounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "14 - Register withdrawal movement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Balance after withdrawal', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('withdrawalTransactionId', json.id);",
+                  "  pm.expect(json.accountNumber).to.eql(pm.collectionVariables.get('accountNumber'));",
+                  "  pm.expect(json.transactionType).to.eql('Withdrawal');",
+                  "  pm.expect(Number(json.amount)).to.eql(-575);",
+                  "  pm.expect(Number(json.balance)).to.eql(1425);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"transactionType\": \"Withdrawal\",\n  \"amount\": -575\n}"
+            },
+            "url": {
+              "raw": "{{accountBaseUrl}}/transactions",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "transactions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "15 - Register deposit movement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Balance after deposit', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('depositTransactionId', json.id);",
+                  "  pm.expect(json.accountNumber).to.eql(pm.collectionVariables.get('accountNumber'));",
+                  "  pm.expect(json.transactionType).to.eql('Deposit');",
+                  "  pm.expect(Number(json.amount)).to.eql(100);",
+                  "  pm.expect(Number(json.balance)).to.eql(1525);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"transactionType\": \"Deposit\",\n  \"amount\": 100\n}"
+            },
+            "url": {
+              "raw": "{{accountBaseUrl}}/transactions",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "transactions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "16 - Validate insufficient balance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Expected business message', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.message).to.eql('Insufficient balance');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"transactionType\": \"Withdrawal\",\n  \"amount\": -999999\n}"
+            },
+            "url": {
+              "raw": "{{accountBaseUrl}}/transactions",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "transactions"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions - GET only",
+      "item": [
+        {
+          "name": "17 - List transactions by account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns successful movements only', function () {",
+                  "  const transactions = pm.response.json();",
+                  "  pm.expect(transactions).to.be.an('array');",
+                  "  pm.expect(transactions.length).to.eql(2);",
+                  "  pm.expect(transactions.some(t => t.transactionType === 'Withdrawal' && Number(t.amount) === -575)).to.eql(true);",
+                  "  pm.expect(transactions.some(t => t.transactionType === 'Deposit' && Number(t.amount) === 100)).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountBaseUrl}}/transactions?accountNumber={{accountNumber}}",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "accountNumber",
+                  "value": "{{accountNumber}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "18 - Get withdrawal transaction by id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns withdrawal transaction', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(String(json.id)).to.eql(pm.collectionVariables.get('withdrawalTransactionId'));",
+                  "  pm.expect(json.transactionType).to.eql('Withdrawal');",
+                  "  pm.expect(Number(json.amount)).to.eql(-575);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountBaseUrl}}/transactions/{{withdrawalTransactionId}}",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "{{withdrawalTransactionId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "19 - Get deposit transaction by id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns deposit transaction', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(String(json.id)).to.eql(pm.collectionVariables.get('depositTransactionId'));",
+                  "  pm.expect(json.transactionType).to.eql('Deposit');",
+                  "  pm.expect(Number(json.amount)).to.eql(100);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountBaseUrl}}/transactions/{{depositTransactionId}}",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "{{depositTransactionId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "20 - Account statement report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Report contains the movement account transactions', function () {",
+                  "  const report = pm.response.json();",
+                  "  pm.expect(report).to.be.an('array');",
+                  "  pm.expect(report.length).to.be.greaterThan(0);",
+                  "  pm.expect(report.some(row => row.accountNumber === pm.collectionVariables.get('accountNumber'))).to.eql(true);",
+                  "  pm.expect(report.some(row => Number(row.transaction) === -575)).to.eql(true);",
+                  "  pm.expect(report.some(row => Number(row.transaction) === 100)).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountBaseUrl}}/reports?clientId={{clientId}}&from=2022-02-01T00:00:00Z&to=2030-12-31T23:59:59Z",
+              "host": [
+                "{{accountBaseUrl}}"
+              ],
+              "path": [
+                "reports"
+              ],
+              "query": [
+                {
+                  "key": "clientId",
+                  "value": "{{clientId}}"
+                },
+                {
+                  "key": "from",
+                  "value": "2022-02-01T00:00:00Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2030-12-31T23:59:59Z"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Client Cleanup",
+      "item": [
+        {
+          "name": "21 - Delete client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{clientBaseUrl}}/clients/{{clientDbId}}",
+              "host": [
+                "{{clientBaseUrl}}"
+              ],
+              "path": [
+                "clients",
+                "{{clientDbId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "22 - Get deleted client returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{clientBaseUrl}}/clients/{{clientDbId}}",
+              "host": [
+                "{{clientBaseUrl}}"
+              ],
+              "path": [
+                "clients",
+                "{{clientDbId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
