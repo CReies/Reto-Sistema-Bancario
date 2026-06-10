@@ -1,4 +1,4 @@
-package com.retotecnico.accounts.infrastructure.rest.controller;
+package com.retotecnico.accounts.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -14,6 +14,8 @@ import com.retotecnico.accounts.application.service.transaction.FindTransactions
 import com.retotecnico.accounts.application.service.transaction.UpdateTransactionService;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+
+import com.retotecnico.accounts.infrastructure.rest.controller.TransactionController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;

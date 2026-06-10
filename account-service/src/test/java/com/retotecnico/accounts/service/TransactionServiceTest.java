@@ -1,4 +1,4 @@
-package com.retotecnico.accounts.application.service;
+package com.retotecnico.accounts.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
