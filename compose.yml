@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: docker.io/library/rabbitmq:3.13-management
+    container_name: reto-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  clients-db:
+    image: docker.io/library/postgres:16
+    container_name: reto-clients-db
+    environment:
+      POSTGRES_DB: clients_db
+      POSTGRES_USER: clients_user
+      POSTGRES_PASSWORD: clients_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - clients-data:/var/lib/postgresql/data
+
+  accounts-db:
+    image: docker.io/library/postgres:16
+    container_name: reto-accounts-db
+    environment:
+      POSTGRES_DB: accounts_db
+      POSTGRES_USER: accounts_user
+      POSTGRES_PASSWORD: accounts_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - accounts-data:/var/lib/postgresql/data
+
+  client-service:
+    build:
+      context: ./client-service
+      dockerfile: Containerfile
+    container_name: reto-client-service
+    restart: on-failure
+    depends_on:
+      - clients-db
+      - rabbitmq
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://clients-db:5432/clients_db
+      SPRING_DATASOURCE_USERNAME: clients_user
+      SPRING_DATASOURCE_PASSWORD: clients_pass
+      SPRING_R2DBC_URL: r2dbc:postgresql://clients-db:5432/clients_db
+      SPRING_R2DBC_USERNAME: clients_user
+      SPRING_R2DBC_PASSWORD: clients_pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8081:8081"
+
+  account-service:
+    build:
+      context: ./account-service
+      dockerfile: Containerfile
+    container_name: reto-account-service
+    restart: on-failure
+    depends_on:
+      - accounts-db
+      - rabbitmq
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://accounts-db:5432/accounts_db
+      SPRING_DATASOURCE_USERNAME: accounts_user
+      SPRING_DATASOURCE_PASSWORD: accounts_pass
+      SPRING_R2DBC_URL: r2dbc:postgresql://accounts-db:5432/accounts_db
+      SPRING_R2DBC_USERNAME: accounts_user
+      SPRING_R2DBC_PASSWORD: accounts_pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8082:8082"
+
+volumes:
+  clients-data:
+  accounts-data:
