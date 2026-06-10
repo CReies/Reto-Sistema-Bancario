@@ -1,0 +1,32 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+spring:
+  application:
+    name: account-service
+  webflux:
+    base-path: /api
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/accounts_db}
+    username: ${SPRING_DATASOURCE_USERNAME:accounts_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:accounts_pass}
+  r2dbc:
+    url: ${SPRING_R2DBC_URL:r2dbc:postgresql://localhost:5434/accounts_db}
+    username: ${SPRING_R2DBC_USERNAME:accounts_user}
+    password: ${SPRING_R2DBC_PASSWORD:accounts_pass}
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+
+app:
+  messaging:
+    enabled: ${APP_MESSAGING_ENABLED:true}
+    exchange: client.events
+    queue: account-service.client-events
+    routing-key: client.changed
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
