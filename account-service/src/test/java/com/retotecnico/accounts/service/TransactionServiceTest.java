@@ -57,6 +57,34 @@ class TransactionServiceTest {
     }
 
     @Test
+    void createRejectsWithdrawalWithPositiveAmount() {
+        Account account = account(new BigDecimal("100.00"));
+        when(accountRepository.findByAccountNumber("478758")).thenReturn(Mono.just(account));
+
+        var request = new TransactionRequest("478758", "Withdrawal", new BigDecimal("50.00"), null);
+
+        StepVerifier.create(service.execute(request))
+                .expectErrorSatisfies(error -> assertThat(error)
+                        .isInstanceOf(BusinessException.class)
+                        .hasMessage("Withdrawal amount must be negative"))
+                .verify();
+    }
+
+    @Test
+    void createRejectsDepositWithNegativeAmount() {
+        Account account = account(new BigDecimal("100.00"));
+        when(accountRepository.findByAccountNumber("478758")).thenReturn(Mono.just(account));
+
+        var request = new TransactionRequest("478758", "Deposit", new BigDecimal("-50.00"), null);
+
+        StepVerifier.create(service.execute(request))
+                .expectErrorSatisfies(error -> assertThat(error)
+                        .isInstanceOf(BusinessException.class)
+                        .hasMessage("Deposit amount must be positive"))
+                .verify();
+    }
+
+    @Test
     void createUpdatesBalanceAndStoresMovement() {
         Account account = account(new BigDecimal("100.00"));
         account.setAccountNumber("225487");
